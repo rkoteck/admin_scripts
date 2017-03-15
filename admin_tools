@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# Script:  admin_tools
+# Author:  Ryan Kotecki
+# Version: 1.0.0
+# Date:    Monday, March 13, 2017
+
+#################################
+# Define script level variables #
+#################################
+USER=`who am i | awk ' { FS = " "; print $1 } '`
+FQDN=`hostname`
+SERVER=`hostname -s`
+SPACE5="     "
+SPACE10="          "
+SPACE15="               "
+SPACE25="                         "
+SPACE50="                                                  "
+SPACE75="                                                                           "
+
+######################
+# Initiate variables #
+######################
+MSG="Administrative Tools Platform"
+OPT=" "
+
+################################
+# Hit enter to return function #
+################################
+EnterToContinue()
+{
+echo " "
+echo "Hit ENTER to continue"
+read
+MainMenu
+}
+
+###################
+# Execute command #
+###################
+ExecuteCommand()
+{
+# Execute the command
+$CMD
+
+# Get a return code
+RC=$?
+
+if [[ $RC != 0 ]]; then
+echo " "
+echo "There was an error executing $CMD. Exit code was $RC"
+exit $RC
+fi
+
+echo "$USER ran $CMD on $(date '+%B %d, %Y') at $(date '+%T')" >> /logs/$(date '+%b%Y').admin.logs.txt
+
+
+EnterToContinue
+}
+
+######################
+# Main Menu Function #
+######################
+MainMenu()
+{
+# Clear the screen
+clear
+
+# Turn on reverse video
+tput smso
+# Setup top prompt bar
+echo " $USER     Administrative Tools Platform     $SERVER$SPACE50" | cut -b1-80
+# Turn off reverse video
+tput rmso
+
+# Insert blank line
+echo " "
+
+# Generate Main Menu
+tput smso
+echo "Server Package Commands"
+tput rmso
+echo "$SPACE5  1 ----> dnf update"
+echo "$SPACE5  2 ----> dnf upgrade"
+echo "$SPACE5  3 ----> dnf clean all"
+echo "$SPACE5  4 ----> dnf install fedora-upgrade"
+echo "$SPACE5  5 ----> fedora-upgrade"
+echo " "
+tput smso
+echo "Root Commands"
+tput rmso
+echo "$SPACE5  6 ----> Login as Root"
+echo " "
+echo "$SPACE5 99 ----> Exit"
+
+# Insert a blank line
+echo " "
+
+# Set bottom prompt bar
+tput smso
+echo "$SPACE10$MSG$SPACE75" | cut -b1-80
+tput rmso
+
+# Insert a blank line
+echo " "
+echo "Selection: "
+
+read OPT
+
+# Handle the seletion process
+case $OPT in
+  1)
+    CMD="sudo dnf update"
+    ExecuteCommand
+  ;;
+
+  2)
+    CMD="sudo dnf upgrade"
+    ExecuteCommand
+  ;;
+
+  3)
+    CMD="sudo dnf clean all"
+    ExecuteCommand
+  ;;
+
+  4)
+    CMD="sudo dnf install fedora-upgrade"
+    ExecuteCommand
+  ;;
+
+  5)
+    CMD="sudo fedora-upgrade"
+    ExecuteCommand
+  ;;
+
+  6)
+    CMD="su - root"
+    ExecuteCommand
+  ;;
+
+  99)
+    echo " "
+    echo "Script is exiting!"
+    sleep 1
+    clear
+    exit 0
+  ;;
+
+  *)
+    MSG="You selected an invalid option"
+    MainMenu
+  ;;
+esac
+}
+
+MainMenu
